@@ -1,0 +1,73 @@
+module maindec(input logic[5:0] op,
+               input logic[5:0] funct,
+               output logic[6:0] DEC_control,
+               output logic[10:0] EX_control,
+               output logic[4:0] MEM_control,
+               output logic[1:0] WB_control);
+  
+  logic[24:0] controls;
+  logic beq, bne, bge, bl, jr, alusrca, alusrcb, s, regwrite, jump, undefined;
+  logic[1:0] memwrite, regdst;
+  logic[4:0] regvalue;
+  logic[3:0] aluop;
+  
+  assign {beq, bne, bge, bl, jr, alusrca, alusrcb, s, regwrite,
+   regdst, memsign, memwrite, jump, regvalue, undefined, aluop} = controls;
+   
+  always_comb
+    case(op)
+      6'b000000:case(funct)  // R Instructions
+        6'b000000: controls <= 26'b0000010010100000000001000;//sll
+        6'b000010: controls <= 26'b0000010010100000000001010; // srl
+        6'b000011: controls <= 26'b0000000010100000000001011; // sra
+        6'b000100: controls <= 26'b0000000010100000000001000; // sllv
+        6'b000110: controls <= 26'b0000000010100000000001010; // srlv
+        6'b000111: controls <= 26'b0000000010100000000001011; // srav
+        6'b001000: controls <= 26'b0000100000000010000000000; // jr
+        6'b001001: controls <= 26'b0000100011000010010000000; // jalr
+        6'b011001: controls <= 26'b0000000000000000000001111; // multu
+        6'b011011: controls <= 26'b0000000000000000000001110; // divu
+        6'b100000: controls <= 26'b0000000110100000000000000; // add
+        6'b100001: controls <= 26'b0000000010100000000000000; // addu
+        6'b100010: controls <= 26'b0000000110100000000000001; // sub
+        6'b100011: controls <= 26'b0000000010100000000000001; // subu
+        6'b100100: controls <= 26'b0000000010100000000000100; // and
+        6'b100101: controls <= 26'b0000000010100000000000101; // or
+        6'b100110: controls <= 26'b0000000010100000000000110; // xor
+        6'b100111: controls <= 26'b0000000010100000000000111; // nor
+        6'b101010: controls <= 26'b0000000110100000000000011; // slt
+        6'b101011: controls <= 26'b0000000010100000000000011; // sltu
+        default:   controls <= 26'b0000000000000000000010000; // undefined instruction
+      endcase
+      6'b000100: controls <= 26'b1000000000000000000000001;  // beq
+      6'b000101: controls <= 26'b0100000000000000000000001;  // bne
+      6'b000110: controls <= 26'b0010000000000000000000001;  // bgt
+      6'b000111: controls <= 26'b0001000000000000000000001;  // bl
+      6'b001000: controls <= 26'b0000001110000000000000000;  // addi
+      6'b001001: controls <= 26'b0000001010000000000000000;  // addiu
+      6'b001010: controls <= 26'b0000001110000000000000011;  // slti
+      6'b001011: controls <= 26'b0000001010000000000000011;  // sltiu
+      6'b001100: controls <= 26'b0000001010000000000000100;  // andi
+      6'b001101: controls <= 26'b0000001010000000000000101;  // ori
+      6'b001110: controls <= 26'b0000001010000000000000110;  // xori
+      6'b001111: controls <= 26'b0000000010000000110000000;  // lui
+      6'b011100: controls <= 26'b0000000010100000000001111;  // mul
+      6'b100000: controls <= 26'b0000001110000001000100000;  // lb
+      6'b100001: controls <= 26'b0000001110000001001000000;  // lh
+      6'b100011: controls <= 26'b0000001110000001000000000;  // lw
+      6'b100100: controls <= 26'b0000001110010001000100000;  // lbu
+      6'b100101: controls <= 26'b0000001110010001001000000;  // lhu
+      6'b101000: controls <= 26'b0000001100001000000000000;  // sb
+      6'b101001: controls <= 26'b0000001100001100000000000;  // sh
+      6'b101011: controls <= 26'b0000001100000100000000000;  // sw
+      6'b010000: controls <= 26'b0000000010000000100000000;  // mfc0
+      6'b000010: controls <= 26'b0000000000000010000000000;  // j
+      6'b000011: controls <= 26'b0000000011000010010000000;  // jal
+      default:   controls <= 26'b0000000000000000001000000;  // undefined instruction
+    endcase
+    
+    assign DEC_control = {beq, bne, bge, bl, jr, jump, undefined};
+    assign EX_control = {alusrca, alusrcb, aluop, s, regdst, regvalue[3:2]};
+    assign MEM_control = {memwrite, memsign, regvalue[1:0]};
+    assign WB_control = {regwrite, regvalue[4]};
+endmodule

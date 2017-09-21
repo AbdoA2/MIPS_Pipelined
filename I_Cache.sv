@@ -1,0 +1,45 @@
+module tag_mem (input logic clk, reset,
+                input logic[3:0] addr,
+                input logic[29:0] vdt_in,
+                input logic we,
+                output logic[29:0] vdt_out);
+                
+  logic[29:0][15:0] RAM;
+  assign vdt_out = RAM[addr];
+  
+  always_ff @(posedge clk)
+    if (we)
+      RAM[addr] = vdt_in;
+      
+  initial
+    for (int i = 0; i < 15; i++)
+      RAM[i][29] = 0;
+endmodule
+
+module data_mem (input logic clk, reset,
+                  input logic[3:0] addr,
+                  input logic[127:0] d_in,
+                  input logic we,
+                  output logic[127:0] d_out);
+                
+  logic[127:0][15:0] RAM;
+  assign d_out = RAM[addr];
+  
+  always_ff @(posedge clk)
+    if (we)
+      RAM[addr] = d_in;
+      
+endmodule
+
+module ICache (input logic clk, reset,
+               input logic[31:0] addr,
+               input logic[127:0] dline,
+               output logic ready,
+               output logic[31:0] inst);
+         
+  data_mem way1(clk, reset, addr[7:4], dline, we1, d_out1); 
+  data_mem way2(clk, reset, addr[7:4], dline, we2, d_out2);   
+  
+  tag_mem tag1(clk, reset, addr[7:4], {v1, d1, t1}, we1, vdt1);
+  tag_mem tag2(clk, reset, addr[7:4], {v2, d2, t2}, we2, vdt2);        
+endmodule

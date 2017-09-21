@@ -1,0 +1,33 @@
+module MEM_WB_Reg(input logic clk, reset, 
+                 input logic[31:0] aluout_, mem_,
+                 input logic[4:0]  rd_,
+                 input logic regwrite_, memsign_,
+                 input logic[2:0] regvalue_,
+                 output logic[31:0] aluout, mem,
+                 output logic[4:0]  rd,
+                 output logic regwrite, memsign,
+                 output logic[2:0] regvalue);
+                 
+  always_ff@(posedge clk)
+    begin
+      if (reset) begin
+        aluout <= 0; mem <= 0; regwrite <= 0; regvalue <= 0; memsign <= 0;
+        rd <= 0; 
+      end
+      else begin
+        // aluout, memory output
+        aluout <= aluout_; mem <= mem_;
+        
+        // write_back stage control signals
+        regwrite <= regwrite_; regvalue <= regvalue_; memsign <= memsign_; rd <= rd_;
+        
+      end
+    end 
+endmodule
+
+
+
+
+
+
+
